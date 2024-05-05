@@ -29,8 +29,7 @@ If you are not familiar with machine learning pipelines, or just want to get the
     
 3. Now that your model knows where the left ventricle is , we can use the architecture above (BiFPN) to enhance the "global" resolution of the images no matter the layer they are in. This is the main_2.py file. Run it.
 
-Additional Note: Make sure to transfer the weights you get from the first model (main.py) to the next model (main_2.py). You can check in the code of the files , their will be a function that was made to do this. 
-
+Additional Note: Make sure to transfer the weights you get from the first model (main.py) to the next model (main_2.py). You can do this by using the LOAD_CHECKPOINT(model_1) function, to load the weights of first (UNET) model (main.py) to the second (BiFPN) model (main_2.py).
 
 
 
