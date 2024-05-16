@@ -1,3 +1,4 @@
+#Import libraries
 import torch
 from torch.utils.tensorboard import SummaryWriter
 import torch.nn.functional as F
@@ -5,21 +6,22 @@ import torch.nn.functional as F
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 NUM_EPOCHS = 10
-
+#Dice score 
 def dice_score(input, prediction):
     smooth = 1e-6
     prediction = (prediction >= 0.5).float() * 1
     intersection = (input * prediction).sum()
     dice = (2. * intersection + smooth) / (input.sum() + prediction.sum() + smooth)
     return dice
-
+    
+Dice score loss function
 def dice_loss(input, prediction):
     smooth = 1e-6
     prediction = (prediction >= 0.5).float() * 1
     intersection = (input * prediction).sum()
     dice = (2. * intersection + smooth) / (input.sum() + prediction.sum() + smooth)
     return 1 - dice
-
+#Accuracy
 def accuracy(target, prediction):
     num_correct = 0
     num_pixels = 0
@@ -29,6 +31,7 @@ def accuracy(target, prediction):
     acc = num_correct/num_pixels
     return acc
 
+#Validation 
 def val(loader, model, x_axis, device=DEVICE):
     loss_fn = torch.nn.BCELoss()
     writer = SummaryWriter(f'runs/model_1/writer_70')
@@ -41,15 +44,12 @@ def val(loader, model, x_axis, device=DEVICE):
         x, y = batch
         x = x.to(device=DEVICE, dtype=torch.float32)
         y = y.to(device=DEVICE, dtype=torch.float32)
-        #print(y.shape)
         with torch.no_grad():
             preds = model(x)
-            #print(preds.shape)
             acy = accuracy(y,preds)
             # forward
             # with torch.cuda.amp.autocast():
             preds = torch.sigmoid(preds)
-            #print(y[(y>1)])
             y = torch.sigmoid(y)
             loss = loss_fn(preds, y)
             initial_loss += loss.item()
