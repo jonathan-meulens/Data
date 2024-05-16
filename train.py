@@ -1,10 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 18 14:10:38 2023
-
-@author: Jonathan M
-"""
-
+#Import libraries
 import os
 import torch
 from torch.utils.tensorboard import SummaryWriter
@@ -13,44 +7,6 @@ from Dice_score import accuracy
 
 #---------------------dataset.py-------------------------------------#
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
-LEARNING_RATE = 1e-4
-BATCH_SIZE = 5
-NUM_EPOCHS = 20
-NUM_WORKERS = 2
-IMAGE_HEIGHT = 482
-IMAGE_WIDTH = 478
-DEPTH= 5
-PIN_MEMORY = True
-LOAD_MODEL = True
-TRAIN_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\train25\\'
-TRAIN_DIR_2 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\train_model1\\'
-TRAIN_MASKDIR = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\train25_myops_gd\\'
-TEST_DIR_1 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\test_model1\\'
-TEST_DIR_2 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\test20\\'
-
-# The different TRAINING-SET folds for five-fold cross validation: #
-FOLD_1 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\train_model1\\train_fold_1\\'
-FOLD_2 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\train_model1\\train_fold_2\\'
-FOLD_3 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\train_model1\\train_fold_3\\'
-FOLD_4 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\train_model1\\train_fold_4\\'
-VAL_5 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\train_model1\\val_fold_5\\'
-
-# The different MASK-SET folds for five-fold cross validation: #
-MASK_FOLD_1 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\mask_model1\\mask_fold_1\\'
-MASK_FOLD_2 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\mask_model1\\mask_fold_2\\'
-MASK_FOLD_3 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\mask_model1\\mask_fold_3\\'
-MASK_FOLD_4 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\mask_model1\\mask_fold_4\\'
-MASK_VAL_5 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\mask_model1\\mask_val_fold_5\\'
-
-# The different MASK-SET folds for five-fold cross validation: #
-TEST_FOLD_1 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\test_model1\\test_fold_1\\'
-TEST_FOLD_2 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\test_model1\\test_fold_1\\'
-
-SAVED_PREDS = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\train_model1\\predictions_model_1\\'
-MODEL1_CHEKCPOINTS = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\train_model1\\model1_checkpoints\\my_checkpoint.pt'
-
-
 
 #----------------------Training Function for Binary Model----------------------------#
 
@@ -68,8 +24,7 @@ def train_fn_1(loader, model, optimizer, x_axis, scale_factors = [0.1 , 0.01, 0.
     initial_loss = 0
     initial_dice = 0
     step = 0
-
-
+    
     loop = tqdm(loader)
     for batch_idx, batch in enumerate(loop):
         data, target = batch
@@ -84,9 +39,11 @@ def train_fn_1(loader, model, optimizer, x_axis, scale_factors = [0.1 , 0.01, 0.
         predictions = torch.sigmoid(predictions)
         target = torch.sigmoid(target)
 
+        #Loss function
         loss = loss_fn_1(predictions, target)
         initial_loss += loss.item()
 
+        #Dice_score 
         dice = dice_score(target, predictions)
         initial_dice += dice
         acc = accuracy(target, predictions)
@@ -101,7 +58,7 @@ def train_fn_1(loader, model, optimizer, x_axis, scale_factors = [0.1 , 0.01, 0.
         for param in model.parameters():
             if param.grad is not None:
                 param.grad.mul((1.0 / scale_factors[0]))
-
+        
         optimizer.step()
 
         # Update  tqdm loop
