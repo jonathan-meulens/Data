@@ -1,3 +1,4 @@
+#Import libraries
 import torch
 import torch.nn.functional as F
 
@@ -19,6 +20,7 @@ class DoubleConv2D(torch.nn.Module):
 
 class Dense_UNET(torch.nn.Module):
     def __init__(self, in_channels = 1, out_channels = 2 , features=[32, 64, 128, 256]):
+        #Densely connected network 
         super(Dense_UNET, self).__init__()
         self.down1 = DoubleConv2D(in_channels, 35)
         self.down2 = DoubleConv2D(36, 68)
@@ -44,7 +46,7 @@ class Dense_UNET(torch.nn.Module):
 
     # THE FORWARD IS TO BE ABLE TO MOVE THROUGH UNET
     def forward(self, x1):
-
+        #------------------------------------------Encoder------------------------------------------------------#
         x1_out = self.down1(x1)
         x1 = F.interpolate(x1, size=(x1_out.shape[2], x1_out.shape[3]), mode='bilinear',align_corners=False)
         p4_x = torch.cat((x1_out, x1), dim=1)
@@ -70,7 +72,7 @@ class Dense_UNET(torch.nn.Module):
         skip_connection = [p4_x, p3_x, p2_x, p1_x]
 
 
-
+       #------------------------------------------Decoder------------------------------------------------------#
         x1_umspl = self.up_sampling1(x_bottleneck)
         x1_umspl = F.interpolate(x1_umspl, size=(skip_connection[3].shape[2], skip_connection[3].shape[3]),mode='bilinear', align_corners=False)
         x1_up_skip_cat = torch.cat((skip_connection[3], x1_umspl), dim=1)
@@ -97,5 +99,6 @@ class Dense_UNET(torch.nn.Module):
         pre_final_out_1 = self.pre_final_conv_1(x4_up_out)
 
         pre_final_out_2 = self.pre_final_conv_2(pre_final_out_1)
-
+        
+        #Return final convolution
         return self.final_conv(pre_final_out_2)
