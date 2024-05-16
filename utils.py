@@ -1,23 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 18 14:10:14 2023
-
-@author: victo
-"""
-import os 
-from PIL import Image
-import torchvision
+#Import libraries
 import torch
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
 import torchvision.transforms.functional as tf
-from dataset import MyOPSDataset
-import SimpleITK as sitk
-import numpy as np
-import albumentations as A
 import torch.nn.functional as F
-from albumentations.pytorch import ToTensorV2
-from dataset import MyOPSDataset
+
 
 
 
