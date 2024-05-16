@@ -1,35 +1,21 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 18 14:10:14 2023
-
-@author: victo
-"""
-import os 
-from PIL import Image
-import torchvision
+#Import libraries
 import torch
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
 import torchvision.transforms.functional as tf
-from dataset import MyOPSDataset
-import SimpleITK as sitk
-import numpy as np
-import torch.nn.functional as F
-from dataset import MyOPSDataset
-
 
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-MODEL1_CHEKCPOINTS = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\model1_checkpoints\\my_checkpoint.pt'
+
+#Save the state of the model at that moment
 def save_checkpoint(checkpoint, folder):
     print('=> Saving checkpoint')
     torch.save(checkpoint['state_dict'], folder, _use_new_zipfile_serialization=False)
 
-
+#Load the states of the model at that moment
 def load_checkpoint(checkpoint_folder):
     print('=> Loading checkpoint')
     torch.load(checkpoint_folder)
-
+    
+#Transfer states/weights from one model to another 
 def transfer_checkpoints(checkpoint_folder_old_model, new_model):
     print('=> Initializing weight-transfer')
     unet_state_dict = torch.load(checkpoint_folder_old_model)
@@ -40,7 +26,7 @@ def transfer_checkpoints(checkpoint_folder_old_model, new_model):
 
     new_model.load_state_dict(model2_state_dict)
 
-
+#Save the images that the model predicts at that moment
 def save_predictions_as_imgs(loader, model, folder, device=DEVICE):
     model.eval()
     for idx, batch in enumerate(loader):
