@@ -1,18 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 18 14:10:38 2023
-
-@author: Jonathan M
-"""
-
+#Import libraries
 import os
 import torch
-from torch.utils.data import Dataset, DataLoader
-from torch.utils.tensorboard import SummaryWriter
-import SimpleITK as sitk
-import numpy as np
-import torch.nn.functional as F
-from tqdm import tqdm
+from torch.utils.data import DataLoader
 from model import UNET
 from BiFPN_model import Myops_UNET
 from Model_checkpoints import save_checkpoint, save_predictions_as_imgs, load_checkpoint
@@ -20,10 +9,6 @@ from dataset import MyOPSDataset
 from Dice_score import val
 from train import train_fn_1
 import albumentations as A
-from albumentations.pytorch import ToTensorV2
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import KFold
-from sklearn.linear_model import LogisticRegression
 
 #---------------------dataset.py-------------------------------------#
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -37,40 +22,17 @@ IMAGE_WIDTH = 478
 DEPTH= 5
 PIN_MEMORY = True
 LOAD_MODEL = False
-TRAIN_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train25\\'
-TRAIN_DIR_2 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\'
-TRAIN_MASKDIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train25_myops_gd\\'
-TEST_DIR_1 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\test_model1\\'
-TEST_DIR_2 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\test20\\'
 
-# The different TRAINING-SET folds for five-fold cross validation: #
-FOLD_1 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\train_fold_1\\'
-FOLD_2 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\train_fold_2\\'
-FOLD_3 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\train_fold_3\\'
-FOLD_4 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\train_fold_4\\'
-VAL_5 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\val_fold_5\\'
-
-# The different MASK-SET folds for five-fold cross validation: #
-MASK_FOLD_1 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_model1\\mask_fold_1\\'
-MASK_FOLD_2 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_model1\\mask_fold_2\\'
-MASK_FOLD_3 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_model1\\mask_fold_3\\'
-MASK_FOLD_4 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_model1\\mask_fold_4\\'
-MASK_VAL_5 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_model1\\mask_val_fold_5\\'
-
-# The different MASK-SET folds for five-fold cross validation: #
-TEST_FOLD_1 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\test_model1\\test_fold_1\\'
-TEST_FOLD_2 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\test_model1\\test_fold_1\\'
-
+#Folder with model predictions
 SAVED_PREDS = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\predictions_model_1\\'
+
+#Folder with saved model states
 MODEL1_CHEKCPOINTS = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\model1_checkpoints\\my_checkpoint.pt'
 
-OUTPUT_IMG_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\training_2D\\'
-OUTPUT_MSK_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2D_model1\\'
-VALIDATION = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\validation\\'
 
-
-
+#Main function
 def main():
+    #Call the both the basic UNET model (model_1) and the specialized Myops_UNET model (model_2)
     model_1 = UNET().to(DEVICE)
     model_2 = Myops_UNET()
 
@@ -105,7 +67,8 @@ def main():
             A.VerticalFlip(p=0.5),
 
         ])
-
+    
+    #Dataset and loader for training model 1
     train_ds_model1 = MyOPSDataset(
         transform=train_transform)
 
@@ -118,7 +81,7 @@ def main():
 
     )
 
-
+    #Dataset and loader for validating model 1
     val_ds_model1 = MyOPSDataset(
         transform=val_transform)
 
@@ -132,8 +95,9 @@ def main():
     )
 
 
-    # schduler = torch.optim.lr_scheduler.LambdaLR()
+    #Start training
     for epoch in range(NUM_EPOCHS):
+        #Load previous weights , if have them. 
         if LOAD_MODEL:
             load_checkpoint(MODEL1_CHEKCPOINTS)
         #train model
@@ -149,7 +113,8 @@ def main():
             'optimizer': optimizer_1.state_dict(),
         }
         save_checkpoint(checkpoint, MODEL1_CHEKCPOINTS)
-
+        
+        #Save the images that the model produces (model predictions) 
         save_predictions_as_imgs(
         train_loader_model1, model_1, folder=SAVED_PREDS, device=DEVICE)
 
