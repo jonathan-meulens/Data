@@ -1,11 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 18 14:10:38 2023
-
-@author: Jonathan M
-"""
-
-
+#Import libraries 
 import torch
 import os
 from monai.data import Dataset, DataLoader
@@ -18,7 +11,7 @@ from bounding_box import get_ND_bounding_box, set_ND_volume_roi_with_bounding_bo
 
 
 
-#----------Augmentation Pipeline----------------------------------#
+#-----------------------------Augmentation Pipeline----------------------------------#
 OUTPUT_IMG_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\training_2D\\'
 OUTPUT_MSK_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2D_model1\\'
 
@@ -132,12 +125,13 @@ class MyOPSDataset(Dataset):
         img_resized_array_T2 = np.array(img_resized_tensor_T2).squeeze(0)
         msk_resized_array_T2 = np.array(msk_resized_tensor_T2).squeeze(0)
 
-
+        #Mean , Std of pixel distribution for both image and mask
         mean_img = 277.6305
         std_img = 390.7119
         mean_msk = 0.0167
         std_mask = 0.1219
 
+        #Apply normilization to the pixel distribution of the images
         image_C0 = normalization(img_resized_array_C0)
         image_DE = normalization(img_resized_array_DE)
         image_T2 = normalization(img_resized_array_T2)
@@ -156,8 +150,10 @@ class MyOPSDataset(Dataset):
             image_C0_loc_tensor = torch.from_numpy(image_C0).squeeze(0)
             img_C0_loc_array = np.array(image_C0_loc_tensor)
 
-
+            #Get the bounding box of the image
             bb_min_loc, bb_max_loc = get_ND_bounding_box(msk_C0_loc_array, margin = 100)
+
+            #Set all areas outside of the area of interest to a pixel value of 0. 
             image_C0_loc = set_ND_volume_roi_with_bounding_box_range(img_C0_loc_array, bb_min_loc,bb_max_loc)
             msk_C0_loc = set_ND_volume_roi_with_bounding_box_range(msk_C0_loc_array, bb_min_loc, bb_max_loc)
 
@@ -166,15 +162,18 @@ class MyOPSDataset(Dataset):
 
             msk_loc_C0_tensor = torch.from_numpy(msk_C0_loc)
 
+            #Transform the image of by centering it. 
             image_mask_transform = T.CenterCrop(256)
             augmented_mask_tensor = image_mask_transform(msk_loc_C0_tensor)
             augmented_image_tensor = image_mask_transform(img_loc_C0_tensor)
-
+            
             aug_mask_tensor = augmented_mask_tensor.unsqueeze(0)
             aug_msk_tensor = augmented_image_tensor.unsqueeze(0)
 
             img_loc_C0_array = np.array(aug_msk_tensor)
             msk_loc_C0_array = np.array(aug_mask_tensor)
+
+            #Apply augmentations
             augmentations = self.transform(image=img_loc_C0_array, mask=msk_loc_C0_array)
             augmented_image = augmentations['image']
             augmented_mask = augmentations['mask']
@@ -182,6 +181,7 @@ class MyOPSDataset(Dataset):
             augmented_mask = np.copy(augmented_mask)
             augmented_image = np.copy(augmented_image)
 
+            #Return images 
             return augmented_image, augmented_mask
 
 
