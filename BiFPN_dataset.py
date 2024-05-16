@@ -21,20 +21,23 @@ from bounding_box import get_ND_bounding_box, set_ND_volume_roi_with_bounding_bo
 
 
 
-#----------Augmentation Pipeline----------------------------------#
+#-------------------------------------Image-Files----------------------------------#
 OUTPUT_IMG_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\training_2D\\'
 OUTPUT_MSK_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2D_model1\\'
 
+##Image directory for the BssfP modality
 IMAGE_C0_MODALITY = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\training_2D_all_modalities\\C0_modality\\'
 MASK_C0_MODALITY = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2D_all_modalities\\C0_mask_modality\\'
 
+##Image directory for the DE modality
 IMAGE_DE_MODALITY = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\training_2D_all_modalities\\DE_modality\\'
 MASK_DE_MODALITY = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2D_all_modalities\\DE_mask_modality\\'
 
+##Image directory for the T2 modality
 IMAGE_T2_MODALITY = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\training_2D_all_modalities\\T2_modality\\'
 MASK_T2_MODALITY = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2D_all_modalities\\T2_mask_modality\\'
 
-
+#This is dataset object for that is fed to the BiFPN-model.
 class BiFPNDataset(Dataset):
     def __init__(self, image_dir_C0 = IMAGE_C0_MODALITY, image_dir_DE = IMAGE_DE_MODALITY, image_dir_T2 = IMAGE_T2_MODALITY,
 
@@ -142,6 +145,8 @@ class BiFPNDataset(Dataset):
         mean_msk = 0.0167
         std_mask = 0.1219
 
+        #We apply normilization , so that the model doesn't train itself on attributes that are merely artifacts of the pixel distribution,
+        ## rather than the nature of the tissue. 
         image_C0_seg = normalization(img_resized_array_C02)
         image_DE_seg = normalization(img_resized_array_DE2)
         image_T2_seg = normalization(img_resized_array_T2_2)
@@ -154,9 +159,10 @@ class BiFPNDataset(Dataset):
         image_DE_seg_tensor = torch.from_numpy(image_DE_seg).squeeze(0)
         image_T2_seg_tensor = torch.from_numpy(image_T2_seg).squeeze(0)
 
+        #Get the area of interest
         bb_min, bb_max = get_ND_bounding_box(mask_seg_C0_seg_tensor, margin=100)
 
-        #print(bb_min, bb_max)
+       #Here we select the area of interest , by setting all areas that are not of interest , to a pixel intensity to 0. 
         binary_mask_C0_seg_bound = set_ND_volume_roi_with_bounding_box_range(binary_mask_C0_tensor, bb_min, bb_max)
         mask_C0_seg_bound = set_ND_volume_roi_with_bounding_box_range(mask_seg_C0_seg_tensor, bb_min, bb_max)
         image_C0_seg_bound = set_ND_volume_roi_with_bounding_box_range(image_C0_seg_tensor, bb_min, bb_max)
@@ -178,6 +184,7 @@ class BiFPNDataset(Dataset):
 
         # This mask is multi-label and used for one_hot encoding
         mask_seg_C0_seg_array = np.array(mask_C0_seg_bound)
+        
         # Concatenating all modalities
         valid_values = [200, 1220, 2221]
         mask_seg_C0_seg_array[~np.isin(mask_seg_C0_seg_array, valid_values)] = 0.0
@@ -199,12 +206,6 @@ class BiFPNDataset(Dataset):
         image_seg_DE_seg_tensor_center = tensor_center(image_seg_DE_seg_tensor_dim)
         image_seg_T2_seg_tensor_center = tensor_center(image_seg_T2_seg_tensor_dim)
 
-        # optimized_C0_image = binary_mask_C0_seg_tensor_center * image_seg_C0_seg_tensor_center
-        # optimized_DE_image = binary_mask_C0_seg_tensor_center * image_seg_DE_seg_tensor_center
-        # optmized_T2_image = binary_mask_C0_seg_tensor_center * image_seg_T2_seg_tensor_center
-
-        #return image_seg_C0_seg_array_dim.shape, image_seg_DE_seg_array_dim.shape, image_seg_T2_seg_array_dim.shape
-
         augmented_image_concat = torch.cat((image_seg_DE_seg_tensor_center, image_seg_T2_seg_tensor_center, image_seg_C0_seg_tensor_center, binary_mask_C0_seg_tensor_center), dim=0)
 
         augmented_mask_tensor = mask_seg_C0_seg_tensor_one_hot.long()
@@ -216,15 +217,15 @@ class BiFPNDataset(Dataset):
         augmented_image = np.array(augmented_image_concat)
         augmented_mask = np.array(one_hot_mask_tensor_resized)
 
+        #Apply augmentations
         augmentations = self.transform(image=augmented_image, mask=augmented_mask)
         augmented_image = augmentations['image']
         augmented_mask = augmentations['mask']
-
+    
         augmented_mask = np.copy(augmented_mask)
         augmented_image = np.copy(augmented_image)
 
         return augmented_image, augmented_mask
-        # return one_hot_mask_tensor_resized.shape
-        #return augmented_image.shape, augmented_mask.shape
+    
 
 
