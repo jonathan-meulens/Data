@@ -12,7 +12,7 @@ VALIDATION = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\validation\\
 image_path = os.listdir(OUTPUT_IMG_DIR)
 mask_path = os.listdir(OUTPUT_MSK_DIR)
 
-
+#Here we try to eliminate noise pixels from training images, for hihger training quality. 
 def image_optimization(mask_paths):
     t = 0
     for i in range(len(image_path)):
