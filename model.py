@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 18 14:10:40 2023
-
-@author: Jonathan Meulens
-"""
+#Import libraries
 import torch
 import torch.nn.functional as F
 
@@ -74,7 +69,7 @@ class UNET(torch.nn.Module):
 
         return self.final_conv(x)
 
-
+#Call the UNET() into an object model
 model = UNET()
 
 # RUN if weights need to be RESET
