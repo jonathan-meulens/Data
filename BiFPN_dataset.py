@@ -1,25 +1,13 @@
-import torch.nn as nn
+#Import libraries
 import torch
-from torch.autograd import Variable
 import os
-from PIL import Image
 from monai.data import Dataset, DataLoader
-from monai.utils import first
-import tarfile
-import torchvision.transforms.functional as tf
 import torchvision.transforms as T
 import numpy as np
 import torch.nn.functional as F
 import SimpleITK as sitk
-from tqdm import tqdm
-from PIL import Image
-import albumentations as A
-from model import UNET
-from BiFPN_model import Myops_UNET
 from Normalization import normalization
 from bounding_box import get_ND_bounding_box, set_ND_volume_roi_with_bounding_box_range
-
-
 
 #-------------------------------------Image-Files----------------------------------#
 OUTPUT_IMG_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\training_2D\\'
@@ -225,6 +213,7 @@ class BiFPNDataset(Dataset):
         augmented_mask = np.copy(augmented_mask)
         augmented_image = np.copy(augmented_image)
 
+        #Return the processed multichannel-images
         return augmented_image, augmented_mask
     
 
