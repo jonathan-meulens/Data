@@ -32,6 +32,7 @@ IMAGES = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\validation\\'
 MASKS = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2D_model1\\'
 #-------------------------LOADERS------------------------------------#
 
+#Original files to be changed
 folder_1 = MASKS
 folder_2 = IMAGES
 
