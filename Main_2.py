@@ -22,46 +22,20 @@ DEPTH= 5
 PIN_MEMORY = True
 LOAD_MODEL = False
 TRANSFER_WEIGHTS = True
-TRAIN_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train25\\'
-TRAIN_DIR_2 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\'
-TRAIN_MASKDIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train25_myops_gd\\'
-TEST_DIR_1 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\test_model1\\'
-TEST_DIR_2 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\test20\\'
 
-# The different TRAINING-SET folds for five-fold cross validation: #
-FOLD_1 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\train_fold_1\\'
-FOLD_2 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\train_fold_2\\'
-FOLD_3 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\train_fold_3\\'
-FOLD_4 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\train_fold_4\\'
-VAL_5 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\val_fold_5\\'
-
-# The different MASK-SET folds for five-fold cross validation: #
-MASK_FOLD_1 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_model1\\mask_fold_1\\'
-MASK_FOLD_2 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_model1\\mask_fold_2\\'
-MASK_FOLD_3 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_model1\\mask_fold_3\\'
-MASK_FOLD_4 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_model1\\mask_fold_4\\'
-MASK_VAL_5 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_model1\\mask_val_fold_5\\'
-
-# The different MASK-SET folds for five-fold cross validation: #
-TEST_FOLD_1 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\test_model1\\test_fold_1\\'
-TEST_FOLD_2 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\test_model1\\test_fold_1\\'
-
-SAVED_PREDS = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\predictions_model_1\\'
+#Folder with saved predictions
 SAVED_PREDS_MODEL2 = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\model_2\\model2_predictions\\'
 
+#Folder with saved model states
 MODEL1_CHEKCPOINTS = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train_model1\\model1_checkpoints\\my_checkpoint.pt'
 MODEL2_CHEKCPOINTS = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\model_2\\model2_checkpoints\\my_checkpoint.pt'
-MODEL_DENSE_CHECKPOINTS = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\model_dense\\model_dense_checkpoints\\my_checkpoint.pt'
-
-OUTPUT_IMG_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\training_2D\\'
-OUTPUT_MSK_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2D_model1\\'
-VALIDATION = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\validation\\'
 
 
 
 
 
 
+#Main function
 def main():
     model_1 = UNET().to(DEVICE)
     model_2 = Myops_UNET().to(DEVICE)
@@ -90,6 +64,7 @@ def main():
             A.ElasticTransform(p=0.5)
         ])
 
+    #Dataset and loader for training the MyOPS UNET
     train_ds_model2 = BiFPNDataset(transform= train_transform)
 
     train_loader_model2 = DataLoader(
@@ -101,7 +76,7 @@ def main():
 
     )
 
-
+    #Dataset and loader for validating the MyOPS UNET
     val_ds_model2 = BiFPNDataset(transform= val_transform)
 
     val_loader_model2 = DataLoader(
@@ -113,13 +88,12 @@ def main():
 
     )
 
-
+    #Start training
     for epoch in range(NUM_EPOCHS):
 
     #In the beggining you want to load MODEL_1 checkpoints to get pre-trained weights
         load_checkpoint(MODEL2_CHEKCPOINTS)
         #train model
-
         train_fn_2(train_loader_model2, model_2, optimizer_2, epoch)
 
         #validation_round
