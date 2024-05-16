@@ -1,28 +1,17 @@
-import torch.nn as nn
+#Import Libraries 
 import torch
-from torch.autograd import Variable
 import os
-from PIL import Image
 from monai.data import Dataset, DataLoader
-from monai.utils import first
-import tarfile
-import torchvision.transforms.functional as tf
 import torchvision.transforms as T
 import numpy as np
 import torch.nn.functional as F
 import SimpleITK as sitk
-from tqdm import tqdm
-from PIL import Image
-import albumentations as A
-from model import UNET
-from BiFPN_model import Myops_UNET
 from Normalization import normalization
 from bounding_box import get_ND_bounding_box, set_ND_volume_roi_with_bounding_box_range
-from Dense_UNET_model import Dense_UNET
 
 
 
-#----------Augmentation Pipeline----------------------------------#
+#----------Image folders----------------------------------#
 OUTPUT_IMG_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\training_2D\\'
 OUTPUT_MSK_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2D_model1\\'
 
@@ -35,7 +24,7 @@ MASK_DE_MODALITY = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2
 IMAGE_T2_MODALITY = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\training_2D_all_modalities\\T2_modality\\'
 MASK_T2_MODALITY = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2D_all_modalities\\T2_mask_modality\\'
 
-
+#Data object that will be fed to the Dense_UNET_model.
 class DenseDataset(Dataset):
     def __init__(self, image_dir_C0 = IMAGE_C0_MODALITY, image_dir_DE = IMAGE_DE_MODALITY, image_dir_T2 = IMAGE_T2_MODALITY,
 
@@ -132,17 +121,15 @@ class DenseDataset(Dataset):
 
         img_resized_array_T2_2 = np.array(img_resized_tensor_T2_2).squeeze(0)
         msk_resized_array_T2_2 = np.array(msk_resized_tensor_T2_2).squeeze(0)
-
-        #optimized_image_array_C0 = img_resized_array_C0 * msk_resized_array_C0
-        #optimized_image_array_DE = img_resized_array_DE * msk_resized_array_DE
-        #optimized_image_array_T2 = img_resized_array_T2 * msk_resized_array_T2
-
-
+    
+        #Mean, Std of both the mask and the image pixel value distributions. 
         mean_img = 277.6305
         std_img = 390.7119
         mean_msk = 0.0167
         std_mask = 0.1219
 
+        #Apply normilization to the images , to prevent the algorithm/model to learn from differences in tissues, 
+        ## rather than artifacts caused by differences in pixel intensity distribution. 
         image_C0_seg = normalization(img_resized_array_C02)
         image_DE_seg = normalization(img_resized_array_DE2)
         image_T2_seg = normalization(img_resized_array_T2_2)
@@ -153,9 +140,10 @@ class DenseDataset(Dataset):
         background_mask_seg_C0_seg_tensor = torch.from_numpy(msk_resized_array_C02).squeeze(0)
         image_C0_tensor = torch.from_numpy(image_C0_seg).squeeze(0)
 
+        #Get the area of interest
         bb_min, bb_max = get_ND_bounding_box(background_mask_seg_C0_seg_tensor, margin=100)
 
-        #print(bb_min, bb_max)
+        #Eliminate all areas outside the area of interest , by reducing pixel intensity to 0.
         binary_mask_C0_seg_bound = set_ND_volume_roi_with_bounding_box_range(binary_mask_C0_tensor, bb_min, bb_max)
         background_mask_C0_seg_bound = set_ND_volume_roi_with_bounding_box_range(background_mask_seg_C0_seg_tensor, bb_min, bb_max)
         image_C0_seg_bound = set_ND_volume_roi_with_bounding_box_range(image_C0_tensor, bb_min, bb_max)
@@ -204,25 +192,3 @@ class DenseDataset(Dataset):
             augmented_image = np.copy(augmented_image)
 
             return augmented_image, augmented_mask
-        # return one_hot_mask_tensor_resized.shape
-        #return augmented_image.shape, augmented_mask.shape
-
-
-model = Dense_UNET()
-
-
-train_transform = A.Compose(
-    [
-        A.Rotate(limit=35, p=0.2),
-        A.HorizontalFlip(p=0.1),
-        # A.RandomBrightnessContrast(p=0.5),
-        # A.ElasticTransform(p=0.9),
-        # A. ShiftScaleRotate(p=0.5),
-        # A. GridDistortion(p=0.8),
-        A.VerticalFlip(p=0.1),
-
-    ],
-)
-# dense = DenseDataset(transform=train_transform)
-# for i in range(len(dense.images_C0)):
-#     print(dense[i])
