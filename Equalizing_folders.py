@@ -1,37 +1,5 @@
-import torch
+#Import libariries
 import os
-from glob import glob
-from model import UNET
-from tqdm import tqdm
-from dataset import MyOPSDataset
-from torch.utils.data import Dataset
-from monai.data import DataLoader
-from monai.utils import first
-import matplotlib.pyplot as plt
-from monai.transforms import (
-Compose,
-LoadImaged,
-ToTensord,
-AddChanneld,
-Orientationd,
-Spacingd,
-RandRotated,
-ScaleIntensityRanged,
-RandGaussianNoised,
-RandAffined,
-Flipd,
-CropForegroundd,
-)
-
-LEARNING_RATE = 1e-4
-BATCH_SIZE = 1
-NUM_EPOCHS = 5
-NUM_WORKERS = 2
-IMAGE_HEIGHT = 482
-IMAGE_WIDTH = 478
-DEPTH= 5
-PIN_MEMORY = True
-LOAD_MODEL = True
 
 TRAIN_DIR = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\train25\\'
 TRAIN_DIR_2 = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\MyoSeg\\train_model1\\'
@@ -63,7 +31,6 @@ MODEL1_CHEKCPOINTS = 'C:\\Users\\victo\\anaconda3\\envs\\JayM\\Jconda\\Data\\Myo
 IMAGES = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\validation\\'
 MASKS = 'C:\\Users\\victo\\anaconda3\\envs\\Jay\\Data\\MyoSeg\\mask_2D_model1\\'
 #-------------------------LOADERS------------------------------------#
-
 
 folder_1 = MASKS
 folder_2 = IMAGES
