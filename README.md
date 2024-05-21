@@ -25,9 +25,9 @@ If you are not familiar with machine learning pipelines, or just want to get the
 
 1. Download all the .py files ofcourse.
    
-2. Check the main.py and main_2.py file. The main.py file will contain all the functions needed to train the plain U-NET. This means , i will NOT use the red (BiFPN block) in this training section. This is beacause i am only trying to isolate , or train the model to recognize the OVERALL area of interest; which in this case is the LEFT VENTRICLE of the heart (in the BssFP/ C1-images). When i trained the model to recognize the OVERALL area of interest, then we use main_2.py file.
+2. Check the main.py and main_2.py file. The main.py file will contain all the functions needed to train the plain U-NET. This means that you will NOT be using the red (BiFPN block) in this training section. This is beacause you are only trying to isolate , or train the model to recognize the area of interest; which in this case, is the LEFT VENTRICLE of the heart (in the BssFP/ C1-images). When you train the model to recognize the area of interest, then, use main_2.py file.
     
-3. Now that your model knows where the left ventricle is , we can use the architecture above (BiFPN) to enhance the "global" resolution of the images no matter the layer they are in. This is the main_2.py file. Run it.
+3. Now that your model knows where the left ventricle is , you can use the architecture above (BiFPN) to enhance the "global" resolution of the images no matter the layer they are in. This is the main_2.py file. Run it.
 
 Additional Note: Make sure to transfer the weights you get from the first model (main.py) to the next model (main_2.py). You can do this by using the LOAD_CHECKPOINT(model_1) function, to load the weights of first (UNET) model (main.py) to the second (BiFPN) model (main_2.py).
 
